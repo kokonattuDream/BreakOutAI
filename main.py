@@ -6,7 +6,7 @@ from envs import create_atari_env
 from model import ActorCritic
 from train import train
 from test import test
-import my_optim
+import optimizer
 
 class Params():
     """
@@ -34,9 +34,9 @@ env = create_atari_env(params.env_name)
 shared_model = ActorCritic(env.observation_space.shape[0], env.action_space) 
 shared_model.share_memory() 
 
-optimizer = my_optim.SharedAdam(shared_model.parameters(), lr=params.lr)
+op = optimizer.SharedAdam(shared_model.parameters(), lr=params.lr)
 #store in shared memory
-optimizer.share_memory() 
+op.share_memory() 
 
 #Processes
 processes = []
@@ -46,7 +46,7 @@ processes.append(p)
 
 #Run all the other processes that will be trained by updating the shared model
 for rank in range(0, params.num_processes):
-    p = mp.Process(target=train, args=(rank, params, shared_model, optimizer))
+    p = mp.Process(target=train, args=(rank, params, shared_model, op))
     p.start()
     processes.append(p)
     
